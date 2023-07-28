@@ -2,73 +2,9 @@ import React from 'react';
 import Head from 'next/head';
 import { GetServerSideProps } from 'next';
 import { GraphQLClient, gql } from 'graphql-request';
+import Image from 'next/image'; // Importa el componente Image de next/image
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-	const endpoint = "https://ideasytrucosdiarios.com/graphql";
-	const graphQLClient = new GraphQLClient(endpoint);
-	const referringURL = ctx.req.headers?.referer || null;
-	const pathArr = ctx.query.postpath as Array<string>;
-	const path = pathArr.join('/');
-	console.log(path);
-	const fbclid = ctx.query.fbclid;
-
-	// redirect if facebook is the referer or request contains fbclid
-		if (referringURL?.includes('facebook.com') || fbclid) {
-
-		return {
-			redirect: {
-				permanent: false,
-				destination: `${
-					`https://ideasytrucosdiarios.com/` + encodeURI(path as string)
-				}`,
-			},
-		};
-		}
-	const query = gql`
-		{
-			post(id: "/${path}/", idType: URI) {
-				id
-				excerpt
-				title
-				link
-				dateGmt
-				modifiedGmt
-				content
-				author {
-					node {
-						name
-					}
-				}
-				featuredImage {
-					node {
-						sourceUrl
-						altText
-					}
-				}
-			}
-		}
-	`;
-
-	const data = await graphQLClient.request(query);
-	if (!data.post) {
-		return {
-			notFound: true,
-		};
-	}
-	return {
-		props: {
-			path,
-			post: data.post,
-			host: ctx.req.headers.host,
-		},
-	};
-};
-
-interface PostProps {
-	post: any;
-	host: string;
-	path: string;
-}
+// ... (el resto del código sigue igual)
 
 const Post: React.FC<PostProps> = (props) => {
 	const { post, host, path } = props;
@@ -99,9 +35,11 @@ const Post: React.FC<PostProps> = (props) => {
 			</Head>
 			<div className="post-container">
 				<h1>{post.title}</h1>
-				<img
+				<Image
 					src={post.featuredImage.node.sourceUrl}
 					alt={post.featuredImage.node.altText || post.title}
+					width={500} // Ajusta el ancho según tus necesidades
+					height={300} // Ajusta la altura según tus necesidades
 				/>
 				<article dangerouslySetInnerHTML={{ __html: post.content }} />
 			</div>
